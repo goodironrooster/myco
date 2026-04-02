@@ -1,0 +1,91 @@
+{
+  "schema_version": 2,
+  "last_updated": "2026-03-24T03:11:51.997000Z",
+  "annotations": {
+    "hello.py": {
+      "current": {
+        "H": 0.5,
+        "press": "none",
+        "age": 0,
+        "drift": 0.0
+      },
+      "history": [
+        {
+          "session": 0,
+          "H": 0.5,
+          "press": "none",
+          "drift": 0.0,
+          "migrated_from_source": true
+        }
+      ]
+    },
+    "math_ops.py": {
+      "current": {
+        "H": 0.0,
+        "press": "none",
+        "age": 0,
+        "drift": 0.0
+      },
+      "history": [
+        {
+          "session": 0,
+          "H": 0.0,
+          "press": "none",
+          "drift": 0.0,
+          "migrated_from_source": true
+        }
+      ]
+    },
+    "myco\\__init__.py": {
+      "current": {
+        "H": 0.5,
+        "press": "decompose",
+        "age": 0,
+        "drift": 0.0
+      },
+      "history": [
+        {
+          "session": 0,
+          "H": 0.5,
+          "press": "decompose",
+          "drift": 0.0,
+          "migrated_from_source": true
+        }
+      ]
+    },
+    "MY_test\\myco\\__init__.py": {
+      "current": {
+        "H": 0.5,
+        "press": "decompose",
+        "age": 0,
+        "drift": 0.0
+      },
+      "history": [
+        {
+          "session": 0,
+          "H": 0.5,
+          "press": "decompose",
+          "drift": 0.0,
+          "migrated_from_source": true
+        }
+      ]
+    },
+    "MY_website\\myco\\__init__.py": {
+      "current": {
+        "H": 0.5,
+        "press": "decompose",
+        "age": 0,
+        "drift": 0.0
+      },
+      "history": [
+        {
+          "session": 0,
+          "H": 0.5,
+          "press": "decompose",
+          "drift": 0.0,
+          "migrated_from_source": true
+        }
+      ]
+    }
+  }
+}

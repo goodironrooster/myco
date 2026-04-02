@@ -1,0 +1,81 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# MYCO - Project-specific
+.myco/world.json
+.myco/sessions/
+.myco/archive/
+
+# Test artifacts
+performance_data/
+test_results/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Model files (too large for git)
+*.gguf
+*.bin
+*.pt
+*.pth
+models/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# Documentation build
+docs/_build/
+
+# Internal development files (not for public GitHub)
+.myco-internal/
+
+# User-specific configuration
+.qwen/
+
+# Windows artifacts
+nul
+
+# VS Code extension (not ready for release)
+vscode-ext/
