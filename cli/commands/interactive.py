@@ -1256,6 +1256,11 @@ def interactive(ctx, model_name, no_approval):
 
         messages.append({"role": "user", "content": user_input})
 
+        # Phase 5.4: Read deduplication — track files read this session
+        files_read_this_task: set[str] = set()
+        read_count_this_task = 0
+        max_reads_before_action = 5  # Force creation after N reads
+
         # Phase 3.2: Self-Repair — check for repeated failures before starting
         if HAS_MYCO and len(conversation_memory.actions) >= 3:
             patterns = conversation_memory.detect_patterns()
@@ -1392,6 +1397,30 @@ def interactive(ctx, model_name, no_approval):
                 step_name = f"{name}({', '.join(f'{k}={v}' for k, v in arguments.items())})"
                 step_index = len(actions_taken)
                 status_display.add_step(step_name)
+
+                # Phase 5.4: Read deduplication — block re-reading files
+                if name == "read_file":
+                    path = arguments.get("path", "")
+                    normalized = str(Path(path).resolve())
+                    if normalized in files_read_this_task:
+                        console.print(f"[yellow]⚠ Already read {path} this task — skipping[/yellow]")
+                        status_display.fail_step(step_index, error="already_read")
+                        tool_results.append({
+                            "tool": name,
+                            "result": f"Already read this file. You have the content. Move on to creating/editing."
+                        })
+                        actions_taken.append({
+                            "tool": name, "args": arguments,
+                            "success": False, "verified": False
+                        })
+                        failed_count += 1
+                        continue
+                    files_read_this_task.add(normalized)
+                    read_count_this_task += 1
+
+                    # Force action after too many reads
+                    if read_count_this_task >= max_reads_before_action:
+                        console.print(f"[yellow]⚠ Read {read_count_this_task} files — time to act, not read more[/yellow]")
 
                 # Phase 5.1: Syntax Gate — validate Python before writing
                 if name in ["write_file", "edit_file", "append_file"]:
@@ -1627,12 +1656,10 @@ def interactive(ctx, model_name, no_approval):
                 tool_call_count += 1
 
                 # Phase 5.3: Context Pruning — keep only recent tool results
-                # Keep: system prompt + user task + last 3 assistant/tool exchanges
-                max_exchanges = 3
+                # Keep: system prompt + user task + last 2 assistant/tool exchanges
+                max_exchanges = 2
                 if len(messages) > 2 + (max_exchanges * 2):  # system + user + exchanges
-                    # Find the cutoff point (keep last N exchanges)
                     cutoff = 2 + (max_exchanges * 2)
-                    # Keep system prompt and original user task, prune middle
                     system_msg = messages[0]
                     original_task = messages[1]
                     recent = messages[-cutoff:]
