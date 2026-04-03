@@ -26,7 +26,7 @@ echo.
 cd /d "%~dp0"
 
 REM Start server with CUDA (FULL GPU OFFLOAD - 99 layers)
-REM Context: 32768 (32K - expanded for 60+ iteration projects)
+REM Context: 131072 (128K - supports large conversations & codebase analysis)
 REM GPU Layers: 99 (ALL layers on GPU for max speed)
 REM Batch: 256 (optimal for throughput)
 REM Flash Attention: on (faster attention)
@@ -35,7 +35,7 @@ REM Model: Qwen3.5-9B (better reasoning than 4B)
 llama-src\build\bin\llama-server.exe ^
     -m Qwen3.5-9B-Q4_0.gguf ^
     --port 1234 ^
-    -c 32768 ^
+    -c 131072 ^
     -ngl 99 ^
     -b 256 ^
     -fa on ^

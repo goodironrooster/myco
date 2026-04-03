@@ -39,8 +39,7 @@ dev = [
 ]
 
 [project.scripts]
-gguf = "cli.main:cli"
-myco = "myco.cli:cli"
+myco = "cli.main:myco"
 
 [tool.setuptools.packages.find]
 where = ["."]

@@ -4,7 +4,7 @@
 
 ---
 
-## Step 1: Install MYCO (2 minutes)
+## Step 1: Install MYCO (1 minute)
 
 ```bash
 # Clone repository
@@ -17,56 +17,41 @@ pip install -e .
 
 **Verify installation:**
 ```bash
-python -c "import myco; print('MYCO installed!')"
+python -c "from cli.main import myco; print('MYCO installed!')"
 ```
 
 ---
 
-## Step 2: Start Model Server (2 minutes)
+## Step 2: Start MYCO (30 seconds)
 
-MYCO needs a local LLM server. Choose one:
-
-### Option A: LM Studio (Easiest)
-
-1. Download from [lmstudio.ai](https://lmstudio.ai/)
-2. Install and launch
-3. Download a model (Qwen3.5-4B recommended)
-4. Click "Start Server" (port 1234)
-
-### Option B: Ollama
+MYCO auto-starts everything — CUDA GPU server, model loading, 200K context window.
 
 ```bash
-# Install from ollama.ai
-ollama pull qwen3.5:4b
-ollama serve
+python -m cli.main
 ```
 
-### Option C: llama.cpp (Advanced)
+That's it. MYCO will:
+1. Find `llama-server.exe` (looks in `llama-cpp/` and common paths)
+2. Load the `Qwen3.5-9B-Q4_0.gguf` model from the project root
+3. Start the server with **CUDA GPU** (99 layers), **200K context**, **flash attention**
+4. Drop you into the interactive agent with 42 tools
 
-```bash
-git clone https://github.com/ggerganov/llama.cpp.git
-cd llama.cpp
-make LLAMA_CUDA=1  # For NVIDIA GPU
-./server -m your-model.gguf --port 1234
+**Verify it's working:**
 ```
-
-**Verify server is running:**
-```bash
-curl http://localhost:1234/health
-# Should return: {"status":"ok"}
+✓ Server ready at http://127.0.0.1:1234
+✓ MYCO Vision enabled
+  Tools Available: 42
+You>
 ```
 
 ---
 
-## Step 3: Run Your First Task (1 minute)
+## Step 3: Run Your First Task
 
-```bash
-# Create a test project
-mkdir my_test_project
-cd my_test_project
+In the interactive prompt, just type your task:
 
-# Run MYCO
-myco "Create a simple calculator with addition and subtraction"
+```
+You> Create a simple calculator with addition and subtraction
 ```
 
 **Watch MYCO:**
@@ -76,44 +61,30 @@ myco "Create a simple calculator with addition and subtraction"
 4. Run tests
 5. Show you the results
 
----
-
-## Step 4: See the Results
-
-```bash
-# See what MYCO created
-ls -la
-# calculator.py  tests/
-
-# View the code
-cat calculator.py
-
-# Run the tests
-pytest tests/
-```
+Type `exit` when done.
 
 ---
 
 ## 🎯 What to Try Next
 
-### Example Tasks
+### Example Tasks (type these in the interactive prompt)
 
 **Simple:**
-```bash
-myco "Add type hints to calculator.py"
-myco "Add docstrings to all functions"
+```
+Add type hints to calculator.py
+Add docstrings to all functions
 ```
 
 **Medium:**
-```bash
-myco "Add multiplication and division to calculator"
-myco "Add input validation to all methods"
+```
+Add multiplication and division to calculator
+Add input validation to all methods
 ```
 
 **Complex:**
-```bash
-myco "Create a REST API for the calculator"
-myco "Add a command-line interface"
+```
+Create a REST API for the calculator
+Add a command-line interface
 ```
 
 ---
@@ -122,12 +93,12 @@ myco "Add a command-line interface"
 
 ### 1. Be Specific
 
-❌ **Bad:** "Make it better"  
+❌ **Bad:** "Make it better"
 ✅ **Good:** "Add error handling for division by zero"
 
 ### 2. Start Small
 
-❌ **Bad:** "Build a complete e-commerce platform"  
+❌ **Bad:** "Build a complete e-commerce platform"
 ✅ **Good:** "Create a Product model with name and price"
 
 ### 3. Review Code
@@ -140,34 +111,39 @@ MYCO writes quality code, but always review:
 ### 4. Use Verbose Mode
 
 ```bash
-myco "Create user service" -v
-# Shows detailed progress
+python -m cli.main -v
+# Shows detailed server startup and progress
+```
+
+### 5. Custom Context Window
+
+```bash
+python -m cli.main -c 65536
+# Use 64K context instead of default 200K
 ```
 
 ---
 
 ## 🛠️ Common Issues
 
-### "Connection refused"
+### "llama-server.exe not found"
 
-**Problem:** Model server not running
-
-**Solution:**
-```bash
-# Start server (LM Studio, Ollama, or llama.cpp)
-# Then verify:
-curl http://localhost:1234/health
-```
-
-### "Module not found: myco"
-
-**Problem:** MYCO not installed
+**Problem:** llama.cpp not installed
 
 **Solution:**
 ```bash
-cd myco
-pip install -e .
+# Download llama.cpp release with CUDA support
+# Place llama-server.exe in D:\MYCO\llama-cpp\
+# Or add it to your PATH
 ```
+
+### "No .gguf model found"
+
+**Problem:** Model file missing
+
+**Solution:**
+- Place a `.gguf` model in `D:\MYCO\` (default: `Qwen3.5-9B-Q4_0.gguf`)
+- Or put any `.gguf` file in the current directory
 
 ### "Out of memory"
 
@@ -175,8 +151,20 @@ pip install -e .
 
 **Solution:**
 - Use smaller model (4B instead of 9B)
-- Reduce context size: `-c 16384`
+- Reduce context size: `python -m cli.main -c 32768`
 - Close other GPU applications
+
+### "Connection refused" (server already running)
+
+**Problem:** Old server instance on wrong port
+
+**Solution:**
+```bash
+# Kill existing server
+taskkill /F /IM llama-server.exe
+# Then restart
+python -m cli.main
+```
 
 ---
 
@@ -202,7 +190,12 @@ MYCO is now ready to help you write better code.
 
 **Try this now:**
 ```bash
-myco "Create a todo list API with create, read, update, delete"
+python -m cli.main
+```
+
+Then type:
+```
+Create a todo list API with create, read, update, delete
 ```
 
 Happy coding! 🍄

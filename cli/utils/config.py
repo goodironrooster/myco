@@ -12,7 +12,7 @@ DEFAULT_CONFIG = {
     "server": {
         "host": "127.0.0.1",
         "port": 1234,
-        "context_length": 8192,
+        "context_length": 131072,  # 128K context for large conversations (Qwen3.5-9B supports 256K max)
         "threads": None,  # Auto-detect
     },
     "model": {
@@ -21,7 +21,7 @@ DEFAULT_CONFIG = {
     "chat": {
         "system_prompt": "You are a helpful assistant.",
         "temperature": 0.7,
-        "max_tokens": 2048,
+        "max_tokens": 8192,  # Increased for very long responses
     },
 }
 

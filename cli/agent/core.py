@@ -2134,7 +2134,7 @@ When writing code, adapt your style to the target module's entropy regime:
     # Good: Focused function
     def validate_email(email: str) -> bool:
         "Check email format."
-        pattern = r"^[a-zA-Z0-9._+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]+$"
+        pattern = r"^[\w.+-]+@[\w.-]+\.[a-zA-Z]+$"
         return bool(re.match(pattern, email))
 
     # Bad: Does validation AND sending

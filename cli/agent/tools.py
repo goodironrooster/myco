@@ -886,15 +886,17 @@ class CommandTools:
             ToolResult with output
         """
         try:
-            # Prepend project root to sys.path in the executed code
-            project_root = str(ProjectTools.PROJECT_ROOT).replace('\\', '/')
-            prefixed_code = f"import sys; sys.path.insert(0, '{project_root}'); " + code
-            
             # Use project root as working directory if not specified
             work_dir = Path(cwd) if cwd else ProjectTools.PROJECT_ROOT
-            
+
+            # Prepend project root to sys.path
+            project_root = str(ProjectTools.PROJECT_ROOT)
+            preamble = f"import sys; sys.path.insert(0, r'{project_root}'); "
+
+            # Run via stdin to handle multi-line code safely
+            full_code = preamble + code
             result = subprocess.run(
-                ['python', '-c', prefixed_code],
+                ['python', '-c', full_code],
                 capture_output=True,
                 text=True,
                 timeout=timeout,

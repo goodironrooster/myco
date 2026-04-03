@@ -21,10 +21,10 @@ Unlike other AI tools that generate code without thinking about consequences, MY
 
 ```bash
 # Install
-pip install myco
+pip install -e .
 
-# Start (make sure your model server is running)
-myco "Add user authentication to my app"
+# Start (auto-starts CUDA server with 200K context)
+python -m cli.main
 ```
 
 That's it. MYCO handles the rest.
@@ -120,22 +120,23 @@ git clone https://github.com/YOUR_USERNAME/myco.git
 cd myco
 pip install -e .
 
-# Start your model server (LM Studio, Ollama, or llama.cpp)
-# Then run MYCO
-myco "Create a REST API for user management"
+# Start MYCO (auto-starts CUDA server, loads model, enters interactive mode)
+python -m cli.main
 ```
 
 ### Example Tasks
 
-```bash
+Once in interactive mode, just type your task:
+
+```
 # Simple
-myco "Add type hints to all functions in src/"
+Add type hints to all functions in src/
 
 # Medium
-myco "Create authentication service with JWT tokens"
+Create authentication service with JWT tokens
 
 # Complex
-myco "Build a complete CRUD module with API, service, and tests"
+Build a complete CRUD module with API, service, and tests
 ```
 
 ---
