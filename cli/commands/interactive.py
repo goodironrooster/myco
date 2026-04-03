@@ -1347,6 +1347,22 @@ def interactive(ctx, model_name, no_approval):
                 tool_calls_raw = _merge_tool_calls(streamed_tool_calls)
             elif content:
                 # Text response, no tool calls — this is the final answer
+                # Phase 5.2: Truncation Detector — check for incomplete responses
+                if content.endswith(('(', '[', '{', '"', "'", '\\')) or content.count('(') != content.count(')'):
+                    console.print("")
+                    console.print("[yellow]⚠ Response appears truncated — auto-completing[/yellow]")
+                    # Close any unclosed parentheses/brackets
+                    open_parens = content.count('(') - content.count(')')
+                    open_brackets = content.count('[') - content.count(']')
+                    open_braces = content.count('{') - content.count('}')
+                    closing = ')' * max(0, open_parens) + ']' * max(0, open_brackets) + '}' * max(0, open_braces)
+                    if content.endswith('"') or content.count('"') % 2 == 1:
+                        closing = '"' + closing
+                    if content.endswith("'") or content.count("'") % 2 == 1:
+                        closing = "'" + closing
+                    content = content.rstrip() + closing
+                    console.print(f"[dim]Added closing chars: {closing}[/dim]")
+
                 messages.append({"role": "assistant", "content": content})
                 break
             else:
@@ -1376,6 +1392,29 @@ def interactive(ctx, model_name, no_approval):
                 step_name = f"{name}({', '.join(f'{k}={v}' for k, v in arguments.items())})"
                 step_index = len(actions_taken)
                 status_display.add_step(step_name)
+
+                # Phase 5.1: Syntax Gate — validate Python before writing
+                if name in ["write_file", "edit_file", "append_file"]:
+                    path = arguments.get("path", "")
+                    file_content = arguments.get("content", "")
+                    if path.endswith('.py') and file_content:
+                        try:
+                            import ast
+                            ast.parse(file_content)
+                        except SyntaxError as e:
+                            console.print(f"[red]✗ Syntax Gate blocked: {path}[/red]")
+                            console.print(f"[dim]  Line {e.lineno}: {e.msg}[/dim]")
+                            status_display.fail_step(step_index, error=f"syntax_error: {e.msg}")
+                            tool_results.append({
+                                "tool": name,
+                                "result": f"BLOCKED by Syntax Gate: {e.msg} (line {e.lineno})"
+                            })
+                            actions_taken.append({
+                                "tool": name, "args": arguments,
+                                "success": False, "verified": False
+                            })
+                            failed_count += 1
+                            continue
 
                 # MYCO Vision: Check entropy before file writes
                 if HAS_MYCO and name == "write_file":
@@ -1586,6 +1625,18 @@ def interactive(ctx, model_name, no_approval):
                     }
                 )
                 tool_call_count += 1
+
+                # Phase 5.3: Context Pruning — keep only recent tool results
+                # Keep: system prompt + user task + last 3 assistant/tool exchanges
+                max_exchanges = 3
+                if len(messages) > 2 + (max_exchanges * 2):  # system + user + exchanges
+                    # Find the cutoff point (keep last N exchanges)
+                    cutoff = 2 + (max_exchanges * 2)
+                    # Keep system prompt and original user task, prune middle
+                    system_msg = messages[0]
+                    original_task = messages[1]
+                    recent = messages[-cutoff:]
+                    messages = [system_msg, original_task] + recent
             else:
                 break
 
