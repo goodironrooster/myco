@@ -1022,6 +1022,12 @@ def interactive(ctx, model_name, no_approval):
         "3. ALWAYS close triple-quoted strings before using them in function calls\n"
         "4. ALWAYS verify syntax before claiming a file is valid\n"
         "5. When writing Python, use 'python' tool to verify syntax before claiming success\n\n"
+        "LARGE FILE RULE:\n"
+        "1. For files over ~50 lines, write the first 30-40 lines with write_file\n"
+        "2. Then use append_file to add the rest in chunks of 30-40 lines\n"
+        "3. NEVER split a single file into multiple files just to avoid size limits\n"
+        "4. NEVER create files like 'styles_part1.css', 'styles_part2.css' — write ONE file\n"
+        "5. If a file gets truncated, use append_file to add the missing content\n\n"
         "When done with a task, wait for the user's next input."
     )
 
@@ -1285,7 +1291,7 @@ def interactive(ctx, model_name, no_approval):
                     "model": model_name,
                     "messages": messages,
                     "temperature": 0.7,
-                    "max_tokens": 4096,
+                    "max_tokens": 8192,
                     "tools": tool_definitions,
                     "stream": True,  # Stream tokens so user sees progress
                 }
