@@ -1028,6 +1028,11 @@ def interactive(ctx, model_name, no_approval):
         "3. NEVER split a single file into multiple files just to avoid size limits\n"
         "4. NEVER create files like 'styles_part1.css', 'styles_part2.css' — write ONE file\n"
         "5. If a file gets truncated, use append_file to add the missing content\n\n"
+        "READ BUDGET:\n"
+        "1. You may read at most 3 files per task before creating/editing\n"
+        "2. You may list a directory only once per task\n"
+        "3. After reading 3 files, you MUST create or edit — no more reading\n"
+        "4. If you don't know something, make a reasonable assumption and create\n\n"
         "When done with a task, wait for the user's next input."
     )
 
@@ -1259,7 +1264,8 @@ def interactive(ctx, model_name, no_approval):
         # Phase 5.4: Read deduplication — track files read this session
         files_read_this_task: set[str] = set()
         read_count_this_task = 0
-        max_reads_before_action = 5  # Force creation after N reads
+        list_dirs_this_task: set[str] = set()
+        max_reads_before_action = 3  # Force creation after N reads
 
         # Phase 3.2: Self-Repair — check for repeated failures before starting
         if HAS_MYCO and len(conversation_memory.actions) >= 3:
@@ -1403,11 +1409,11 @@ def interactive(ctx, model_name, no_approval):
                     path = arguments.get("path", "")
                     normalized = str(Path(path).resolve())
                     if normalized in files_read_this_task:
-                        console.print(f"[yellow]⚠ Already read {path} this task — skipping[/yellow]")
+                        console.print(f"[yellow]⚠ Already read {path} — skipping[/yellow]")
                         status_display.fail_step(step_index, error="already_read")
                         tool_results.append({
                             "tool": name,
-                            "result": f"Already read this file. You have the content. Move on to creating/editing."
+                            "result": f"BLOCKED: You already read this file. Stop reading. Start creating or editing files now."
                         })
                         actions_taken.append({
                             "tool": name, "args": arguments,
@@ -1418,9 +1424,28 @@ def interactive(ctx, model_name, no_approval):
                     files_read_this_task.add(normalized)
                     read_count_this_task += 1
 
-                    # Force action after too many reads
+                    # Hard stop after max reads — force creation
                     if read_count_this_task >= max_reads_before_action:
-                        console.print(f"[yellow]⚠ Read {read_count_this_task} files — time to act, not read more[/yellow]")
+                        console.print(f"[red]✗ Read limit reached ({read_count_this_task} files). You must create/edit files now, not read more.[/red]")
+
+                # Deduplicate list_files — block re-listing same directory
+                if name == "list_files":
+                    path = arguments.get("path", "")
+                    normalized = str(Path(path).resolve())
+                    if normalized in list_dirs_this_task:
+                        console.print(f"[yellow]⚠ Already listed {path} — skipping[/yellow]")
+                        status_display.fail_step(step_index, error="already_listed")
+                        tool_results.append({
+                            "tool": name,
+                            "result": f"BLOCKED: You already listed this directory. Stop exploring. Start creating files now."
+                        })
+                        actions_taken.append({
+                            "tool": name, "args": arguments,
+                            "success": False, "verified": False
+                        })
+                        failed_count += 1
+                        continue
+                    list_dirs_this_task.add(normalized)
 
                 # Phase 5.1: Syntax Gate — validate Python before writing
                 if name in ["write_file", "edit_file", "append_file"]:
